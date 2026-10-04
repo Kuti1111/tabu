@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sınıf Tabu Oyunu</title>
+    <style>
+        /* Tam Ekran ve Kaydırma (Scroll) Engelleme Ayarları */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* height: 100vh ve overflow: hidden dikey kaydırmayı tamamen yok eder */
+        html, body { height: 100%; overflow: hidden; background-color: #f0f4f8; color: #333; user-select: none; touch-action: manipulation; }
+        
+        .container { height: 100%; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; padding: 2vh 2vw; justify-content: center; }
+        .hidden { display: none !important; }
+
+        /* Başlıklar ve Metinler (vh ile dikey yüksekliğe göre otomatik boyutlanır) */
+        h1 { font-size: 6vh; color: #2c3e50; margin-bottom: 2vh; text-transform: uppercase; text-shadow: 2px 2px 0px #fff; }
+        h2 { font-size: 4vh; color: #34495e; margin-bottom: 2vh; }
+        p { font-size: 2.5vh; margin-bottom: 1vh; }
+
+        /* Form Elemanları */
+        input[type="text"], input[type="number"] { width: 90%; padding: 2vh; margin: 1vh 0; font-size: 2.5vh; border: 3px solid #bdc3c7; border-radius: 15px; text-align: center; }
+        .settings-group { background: #fff; padding: 3vh; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 2vh; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* Butonlar */
+        button { border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        button:active { transform: scale(0.95); }
+        .btn-start, .btn-ready { background-color: #3498db; width: 100%; max-width: 600px; font-size: 4vh; padding: 3vh; margin: 2vh auto 0 auto; display: block; }
+        .btn-ready { background-color: #9b59b6; }
+
+        /* Oyun Ekranı Bileşenleri - Üst Bar */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 2vh 3vw; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1.5vh; font-size: 3vh; font-weight: bold; flex-shrink: 0; }
+        .timer { color: #e74c3c; font-size: 5vh; }
+        
+        /* Kart Tasarımı (flex-grow: 1 ile kalan tüm ekranı kaplar) */
+        .card { background: #fff; border-radius: 20px; box-shadow: 0 8px 15px rgba(0,0,0,0.15); margin-bottom: 1.5vh; border-top: 1.5vh solid #3498db; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2vh 2vw; }
+        
+        .target-word { font-size: 7vh; color: #2c3e50; font-weight: 900; margin-bottom: 3vh; text-transform: uppercase; letter-spacing: 2px; }
+        .taboo-word { font-size: 3.8vh; color: #7f8c8d; margin: 1vh 0; font-weight: bold; }
+        
+        /* Özel Uyarı Kutusu */
+        .special-alert { background-color: #ffeaea; color: #c0392b; border: 3px solid #e74c3c; padding: 1.5vh 2vw; border-radius: 15px; margin-top: 2vh; font-size: 2.8vh; font-weight: 900; display: none; text-transform: uppercase; animation: pulse 1s infinite alternate; width: 90%; text-align: center; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.02); } }
+
+        /* Aksiyon Butonları Alanı */
+        .pass-info { font-size: 3vh; font-weight: bold; margin-bottom: 1vh; flex-shrink: 0; text-align: center; width: 100%; }
+        .action-buttons { display: flex; gap: 2vw; width: 100%; justify-content: space-between; flex-shrink: 0; padding-bottom: 1vh; }
+        .action-buttons button { flex: 1; font-size: 3.5vh; padding: 3vh 0; }
+        .btn-correct { background-color: #2ecc71; }
+        .btn-taboo { background-color: #e74c3c; }
+        .btn-pass { background-color: #f1c40f; color: #333; }
+
+        /* Skor Tablosu */
+        .score-board { display: flex; justify-content: space-around; background: #fff; padding: 3vh; border-radius: 20px; margin: 3vh auto; box-shadow: 0 6px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .score-box { text-align: center; transition: all 0.3s; }
+        .score-box.active { color: #3498db; transform: scale(1.15); font-weight: bold; }
+        .score-box h3 { font-size: 3.5vh; }
+        .score-box span { font-size: 6vh; font-weight: bold; }
+
+        /* Setup / Transition hizalama */
+        #setup-screen, #transition-screen, #end-screen { align-items: center; }
+
+        /* Konfeti Canvas */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas" class="hidden"></canvas>
+
+    <!-- 1. KURULUM EKRANI -->
+    <div id="setup-screen" class="container">
+        <h1 style="color: #e74c3c;">SINIF TABU</h1>
+        <div class="settings-group">
+            <input type="text" id="teamA-name" value="1. Takım" placeholder="1. Takım Adı">
+            <input type="text" id="teamB-name" value="2. Takım" placeholder="2. Takım Adı">
+        </div>
+        <div class="settings-group">
+            <p>Tur Süresi (Saniye):</p>
+            <input type="number" id="time-setting" value="60">
+            <p>Pas Hakkı (Her Tur İçin):</p>
+            <input type="number" id="pass-setting" value="3">
+            <p>Bitiş Skoru:</p>
+            <input type="number" id="target-score" value="20">
+        </div>
+        <button class="btn-start" onclick="startGame()">Oyuna Başla</button>
+    </div>
+
+    <!-- 2. GEÇİŞ / MOLA EKRANI -->
+    <div id="transition-screen" class="container hidden">
+        <h1 id="transition-title">TUR BİTTİ!</h1>
+        <div class="score-board">
+            <div class="score-box" id="trans-scoreA">
+                <h3 id="trans-nameA">A Takımı</h3>
+                <span id="scoreA-val">0</span>
+            </div>
+            <div class="score-box" id="trans-scoreB">
+                <h3 id="trans-nameB">B Takımı</h3>
+                <span id="scoreB-val">0</span>
+            </div>
+        </div>
+        <h2 style="color: #e74c3c; margin-top: 3vh;">Sıradaki Takım: <br><span id="next-team-name" style="font-size: 6vh; color: #2c3e50;"></span></h2>
+        <p style="margin-top: 2vh;">Cihazı anlatıcıya verin. Hazır olduğunuzda süreyi başlatın!</p>
+        <button class="btn-ready" onclick="startTurn()">HAZIRIM, BAŞLAT!</button>
+    </div>
+
+    <!-- 3. OYUN EKRANI -->
+    <div id="game-screen" class="container hidden">
+        <div class="top-bar">
+            <div id="current-team-display">Takım A</div>
+            <div class="timer" id="timer-display">60</div>
+            <div>Puan: <span id="current-score-display">0</span></div>
+        </div>
+        
+        <div class="card">
+            <div class="target-word" id="word">KELİME</div>
+            <div id="taboo-list"></div>
+            <div id="special-alert" class="special-alert">Uyarı</div>
+        </div>
+
+        <div class="pass-info">
+            Kalan Pas: <span id="pass-count-display">3</span>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-taboo" onclick="handleTaboo()">TABU<br>(-1)</button>
+            <button class="btn-pass" id="btn-pass" onclick="handlePass()">PAS</button>
+            <button class="btn-correct" onclick="handleCorrect()">DOĞRU<br>(+1)</button>
+        </div>
+    </div>
+
+    <!-- 4. OYUN BİTİŞ EKRANI -->
+    <div id="end-screen" class="container hidden">
+        <h1>OYUN BİTTİ!</h1>
+        <h2 id="winner-text" style="font-size: 6vh; color: #2ecc71; margin: 3vh 0; text-transform: uppercase;">KAZANAN: A Takımı</h2>
+        <div class="score-board">
+            <div class="score-box">
+                <h3 id="end-nameA">A Takımı</h3>
+                <span id="end-scoreA">0</span>
+            </div>
+            <div class="score-box">
+                <h3 id="end-nameB">B Takımı</h3>
+                <span id="end-scoreB">0</span>
+            </div>
+        </div>
+        <button class="btn-start" onclick="location.reload()" style="margin-top: 4vh;">YENİDEN OYNA</button>
+    </div>
+
+    <script>
+        const wordPool = [
+            // Sizin Özel Kelimeleriniz
+            { word: "ZENCİ", forbidden: ["Siyahi", "Ten", "Afrika", "Irk", "Koyu"] },
+            { word: "ÇEREZ", forbidden: ["Fındık", "Fıstık", "Kuruyemiş", "Cips", "Çekirdek"] },
+            { word: "DAYI", forbidden: ["Anne", "Kardeş", "Amca", "Teyze", "Akraba"] },
+            { word: "CRISTIANO RONALDO", forbidden: ["Portekiz", "Real Madrid", "Al Nassr", "Siuu", "7"] },
+            { word: "LIONEL MESSI", forbidden: ["Arjantin", "Barcelona", "Inter Miami", "Ballon d'Or", "10"] },
+            { word: "İSMAİL KARTAL", forbidden: ["Fenerbahçe", "Teknik Direktör", "Hoca", "Arap", "Takım"] },
+            { word: "ENES BATUR", forbidden: ["YouTuber", "Video", "NDNG", "Baturay", "İnternet"] },
+            { word: "FENERBAHÇE", forbidden: ["Sarı", "Lacivert", "Kadıköy", "Kanarya", "Şükrü Saracoğlu"] },
+            { word: "GALATASARAY", forbidden: ["Sarı", "Kırmızı", "Şike", "Aslan", "RAMS Park"] },
+            { word: "BEŞİKTAŞ", forbidden: ["Siyah", "Beyaz", "İnönü", "Kartal", "Dolmabahçe"] },
+            { word: "TRABZONSPOR", forbidden: ["Bordo", "Mavi", "Hamsi", "Karadeniz", "61"] },
+            { word: "BURSASPOR", forbidden: ["Yeşil", "Beyaz", "Timsah", "Şampiyon", "Teksas"] },
+            { word: "MAHVOLMUŞ", forbidden: ["Kral", "Viego", "League of Legends", "Kılıç", "Afet"] },
+            
+            // Özel Kurallı Kart: Kuti1111 (Kutay)
+            { 
+                word: "KUTİ1111", 
+                forbidden: ["Kutay", "Sigma", "Alfa", "Zenci", "Büyük Babacan"],
+                alert: "⚠️ DİKKAT: Beni elle gösterdiğin an afrikaya sürgün edileceksin!"
+            },
+            
+            { word: "TUNG TUNG TUNG SAHUR", forbidden: ["TikTok", "Akım", "Brainrot", "Ramazan", "Davul"] },
+            { word: "OSMAN TUŞ", forbidden: ["İnternet", "Fenomen", "Nambir", "Video", "Sosyal Medya"] },
+            { word: "MANGO", forbidden: ["Meyve", "Tropikal", "Sarı", "Tatlı", "Kabuk"] },
+            { word: "POCI SENTAR", forbidden: ["Apokerim", "Eğlence", "İnternet", "Video", "Bardakçı"] },
+            { word: "E-SPOR", forbidden: ["Oyun", "Bilgisayar", "Turnuva", "Takım", "Oyuncu"] },
+            { word: "BÜYÜK BABACAN", forbidden: ["Zengin Adam", "Para", "Uzi", "Afrika", "Dans"] },
+            { word: "OSIMHEN", forbidden: ["Galatasaray", "Maske", "Golcü", "Nijerya", "Napoli"] },
+            { word: "AZİZ YILDIRIM", forbidden: ["Fenerbahçe", "Başkan", "Kadıköy", "Kulüp", "Racon"] },
+            { word: "ALİ KOÇ", forbidden: ["Fenerbahçe", "Başkan", "Koç Holding", "Sarı Lacivert", "Yapı"] },
+            { word: "YAPI", forbidden: ["TFF", "Hakem", "Futbol", "Tartışma", "Lig"] },
+            { word: "ABDÜLKERİM", forbidden: ["Bardakcı", "Defans", "Galatasaray", "Stoper", "Millî Takım"] },
+            { word: "SİGMA", forbidden: ["Male", "Grindset", "Kutay", "Kural", "İnternet"] },
+            { word: "ADEBAYOR", forbidden: ["Futbolcu", "Arsenal", "3-2-1", "Togo", "Başakşehir"] },
+            { word: "LVBEL C5", forbidden: ["Rap", "Şarkıcı", "Baba", "Müzik", "Konser"] },
+            { word: "MÜDÜR", forbidden: ["Okul", "Zil", "Disiplin", "Odası", "Teneffüs"] },
+            
+            // Özel Kurallı Kart: Deniz
+            { 
+                word: "DENİZ", 
+                forbidden: ["Kum", "Güneş", "Yüzmek", "Dalga", "Su"],
+                alert: "⚠️ DİKKAT: Deniz'i elle gösterdiğin an infazın verilecek!"
+            },
+
+            // Genişletilmiş Kelimeler
+            { word: "BLOK3", forbidden: ["Rap", "Şarkı", "Vur", "Aklına Gelir", "Konser"] },
+            { word: "SEMİCENK", forbidden: ["Müzik", "Şarkı", "Pop", "Şarkıcı", "Ses"] },
+            { word: "KICK", forbidden: ["Yayın", "Canlı", "Platform", "Çat", "İnternet"] },
+            { word: "TWITCH", forbidden: ["Yayıncı", "Yayın", "Chat", "İnternet", "Oyun"] },
+            { word: "BEDEN EĞİTİMİ", forbidden: ["Spor", "Eşofman", "Saha", "Top", "Koşu"] },
+            { word: "NÖBETÇİ ÖĞRENCİ", forbidden: ["Okul", "Kapı", "Yoklama", "Sınıf", "Hoca"] },
+            { word: "KANTİNCİ", forbidden: ["Tost", "Teneffüs", "Para", "Sıra", "Okul"] },
+            { word: "ARDA GÜLER", forbidden: ["Real Madrid", "Millî Takım", "Sol Ayak", "Genç", "Çalım"] },
+            { word: "ICARDI", forbidden: ["Aşkın Olayım", "Arjantin", "Golcü", "Galatasaray", "9"] },
+            { word: "ROBLOX", forbidden: ["Oyun", "Karakter", "Küp", "Server", "Ban"] },
+            { word: "BRAWL STARS", forbidden: ["Oyun", "Kutu", "Elmas", "Leon", "Brawler"] },
+            { word: "GTA", forbidden: ["Arabalar", "Görev", "Şehir", "Polis", "Şifre"] },
+            { word: "DISCORD", forbidden: ["Sunucu", "Ses", "Kanal", "Oda", "Mesaj"] },
+            { word: "PLAYSTATION", forbidden: ["Konsol", "Kol", "Sony", "Oyun", "FIFA"] },
+            { word: "YAPAY ZEKÂ", forbidden: ["ChatGPT", "Robot", "Kod", "Bilgisayar", "Akıllı"] },
+            { word: "TIKTOK", forbidden: ["Video", "Keşfet", "Akım", "Takipçi", "Sosyal Medya"] },
+            { word: "INSTAGRAM", forbidden: ["Fotoğraf", "Hikâye", "Reels", "Beğeni", "DM"] },
+            { word: "VALORANT", forbidden: ["FPS", "Riot", "Silah", "Ajan", "Bıçak"] },
+            { word: "COUNTER-STRIKE", forbidden: ["Terörist", "Bomba", "Dust2", "CS", "Silah"] },
+            { word: "MINECRAFT", forbidden: ["Blok", "Steve", "Creeper", "Kazma", "Küp"] },
+            { word: "LAHMACUN", forbidden: ["Kıymalı", "Maydanoz", "Limon", "Pide", "Fırın"] },
+            { word: "METROBÜS", forbidden: ["Durak", "Kalabalık", "İstanbul", "Akbil", "Yolcu"] },
+            { word: "OFSAYT", forbidden: ["Çizgi", "Hakem", "Defans", "Pas", "Bayrak"] },
+            { word: "PENALTI", forbidden: ["Beyaz Nokta", "Kaleci", "Vuruş", "Ceza Sahası", "Faul"] },
+            { word: "SQUID GAME", forbidden: ["Kore", "Dizi", "Netflix", "Kırmızı Işık", "Oyuncu"] },
+            { word: "PODCAST", forbidden: ["Dinlemek", "Yayın", "Mikrofon", "Ses", "Spotify"] },
+            { word: "ÇAY", forbidden: ["Rize", "İnce Belli", "Demlik", "Şeker", "İçmek"] },
+            { word: "HALAY", forbidden: ["Mendil", "Düğün", "Omuz", "Çekmek", "Davul"] },
+            { word: "KANTİN", forbidden: ["Okul", "Tost", "Ayran", "Teneffüs", "Sıra"] },
+            { word: "KARNE", forbidden: ["Not", "Okul", "Not Ortalaması", "Takdir", "Teşekkür"] },
+            { word: "NETFLIX", forbidden: ["Dizi", "Film", "İzlemek", "Üyelik", "Ekran"] },
+            { word: "AKILLI TAHTA", forbidden: ["Okul", "Sınıf", "Dokunmatik", "Kalem", "Ekran"] },
+            { word: "AKBİL", forbidden: ["Kart", "Otobüs", "Ulaşım", "Basmak", "Bakiye"] },
+            { word: "SPIDER-MAN", forbidden: ["Ağ", "Örümcek", "Peter Parker", "Kırmızı", "Çizgi Roman"] },
+            { word: "DÖNER", forbidden: ["Et", "Tavuk", "Dürüm", "İskender", "Sos"] },
+            { word: "KAHVE", forbidden: ["Fincan", "Kafein", "Türk", "Latte", "İçmek"] },
+            { word: "GÜNEŞ GÖZLÜĞÜ", forbidden: ["Yaz", "Cam", "Siyah", "Parıltı", "Takmak"] },
+            { word: "GÜVENLİK KAMERASI", forbidden: ["Kayıt", "İzlemek", "Hırsız", "Bina", "Lens"] },
+            { word: "TİYATRO", forbidden: ["Sahne", "Oyuncu", "Perde", "Oyun", "Seyirci"] },
+            { word: "MÜZİK", forbidden: ["Nota", "Şarkı", "Dinlemek", "Ses", "Enstrüman"] },
+            { word: "DOKTOR", forbidden: ["Hastane", "Muayene", "İlaç", "Reçete", "Steteskop"] },
+            { word: "TELEFON", forbidden: ["Arama", "Mesaj", "İletişim", "Şarj", "Ekran"] },
+            { word: "HARİTA", forbidden: ["Yön", "Ülke", "Şehir", "Bulmak", "Pusula"] },
+            { word: "AĞAÇ", forbidden: ["Yaprak", "Dal", "Orman", "Kök", "Yeşil"] },
+            { word: "FOTOĞRAF", forbidden: ["Kamera", "Çekmek", "Poz", "Albüm", "Resim"] },
+            { word: "SİNEMA", forbidden: ["Film", "Mısır", "Bilet", "Perde", "Koltuk"] },
+            { word: "KAPADOKYA", forbidden: ["Peri Bacası", "Balon", "Nevşehir", "Turizm", "Kayalık"] },
+            { word: "BİLGİSAYAR", forbidden: ["Ekran", "Klavye", "Fare", "İnternet", "Kasa"] },
+            { word: "TELEVİZYON", forbidden: ["Kumanda", "Ekran", "Dizi", "İzlemek", "Kanal"] },
+            { word: "AŞÇI", forbidden: ["Yemek", "Mutfak", "Lokanta", "Kepçe", "Şapka"] },
+            { word: "ÖĞRETMEN", forbidden: ["Okul", "Sınıf", "Öğrenci", "Ders", "Tahta"] },
+            { word: "GÖZLÜK", forbidden: ["Çerçeve", "Cam", "Göz", "Miyop", "Takmak"] },
+            { word: "SAAT", forbidden: ["Zaman", "Akrep", "Yelkovan", "Kol", "Duvar"] },
+            { word: "KİTAP", forbidden: ["Sayfa", "Yazar", "Okumak", "Roman", "Kapak"] },
+            { word: "ŞEMSİYE", forbidden: ["Yağmur", "Islanmak", "Kış", "Sap", "Açmak"] },
+            { word: "SÜPERMEN", forbidden: ["Pelerin", "Uçmak", "Kırmızı", "Çelik", "Çizgi Roman"] },
+            { word: "BATMAN", forbidden: ["Yasa", "Gece", "Yarasa", "Gotham", "Siyah"] },
+            { word: "YAZILI SINAV", forbidden: ["Kağıt", "Not", "Öğretmen", "Sıra", "Çalışmak"] },
+            { word: "ÖDEV", forbidden: ["Ev", "Öğretmen", "Defter", "Unutmak", "Yapmak"] },
+            { word: "BASKETBOL", forbidden: ["Pota", "Basket", "Smaç", "NBA", "Top"] },
+            { word: "VOLEYBOL", forbidden: ["File", "Manşet", "Servis", "Blok", "Smaç"] },
+            { word: "PİZZA", forbidden: ["Dilim", "İtalyan", "Peynir", "Sucuk", "Fırın"] },
+            { word: "BURGER", forbidden: ["Köfte", "Ekmek", "Patates", "Menü", "Sos"] },
+            { word: "ÇİKOLATA", forbidden: ["Tatlı", "Kakao", "Sütlü", "Bitter", "Paket"] },
+            { word: "DONDURMA", forbidden: ["Külah", "Yaz", "Soğuk", "Maraş", "Yalamak"] },
+            { word: "HELİKOPTER", forbidden: ["Pervane", "Uçmak", "Pilot", "Hava", "Askerî"] },
+            { word: "UÇAK", forbidden: ["Kanat", "Havalimanı", "Pilot", "Bilet", "Bulut"] },
+            { word: "UZAY", forbidden: ["Gezegen", "Yıldız", "Astronot", "Roket", "Karanlık"] },
+            { word: "KUTUP AYISI", forbidden: ["Soğuk", "Buzul", "Beyaz", "Kar", "Kuzey"] },
+            { word: "ASLAN", forbidden: ["Orman", "Kral", "Yele", "Vahşi", "Kükremek"] },
+            { word: "PENGUEN", forbidden: ["Kutup", "Siyah Beyaz", "Yürüyüş", "Soğuk", "Kuş"] },
+            { word: "KANGURU", forbidden: ["Avustralya", "Kese", "Zıplamak", "Yavru", "Hayvan"] },
+            { word: "KÖPEKBALIĞI", forbidden: ["Yüzgeç", "Okyanus", "Diş", "Tehlikeli", "Su"] },
+            { word: "GİTAR", forbidden: ["Tel", "Akustik", "Pena", "Çalmak", "Enstrüman"] },
+            { word: "PIYANO", forbidden: ["Tuş", "Siyah Beyaz", "Klasik", "Müzik", "Çalmak"] },
+            { word: "DAVUL", forbidden: ["Zurna", "Ramazan", "Tokmak", "Ritim", "Düğün"] },
+            { word: "SIRA", forbidden: ["Okul", "Sınıf", "Oturmak", "Ahşap", "Arkadaş"] },
+            { word: "TENEFFÜS", forbidden: ["Zil", "Okul", "Bahçe", "Dinlenme", "Sınıf"] },
+            { word: "KULAKLIK", forbidden: ["Müzik", "Ses", "Kulak", "Kablosuz", "Bluetooth"] },
+            { word: "ŞAMPİYONLAR LİGİ", forbidden: ["Kupası", "Avrupa", "Futbol", "Marş", "Final"] },
+            { word: "SÜPER LİG", forbidden: ["Türkiye", "Şampiyon", "Takım", "Puan", "Maç"] },
+            { word: "CUMARTESİ", forbidden: ["Hafta Sonu", "Tatil", "Gün", "Cuma", "Pazar"] },
+            { word: "YAZ TATİLİ", forbidden: ["Karneler", "Okul", "Deniz", "Dinlenmek", "Haziran"] },
+            { word: "ÇÖP KOVASI", forbidden: ["Sınıf", "Atmak", "Kağıt", "Köşe", "Poşet"] },
+            { word: "SİLGİ", forbidden: ["Kalem", "Yazı", "Hata", "Beyaz", "Yanlış"] },
+            { word: "KURŞUN KALEM", forbidden: ["Yazmak", "Açacak", "Uç", "Defter", "Resim"] },
+            { word: "KAPATAN VURUŞU", forbidden: ["Futbol", "Gol", "Şut", "Kaleci", "Ağlar"] },
+            { word: "GÜNEŞ", forbidden: ["Sıcak", "Gökyüzü", "Sarı", "Isı", "Isıtmak"] },
+            { word: "RÜZGÂR", forbidden: ["Esmek", "Soğuk", "Fırtına", "Hava", "Yaprak"] },
+            { word: "DENİZ KIZI", forbidden: ["Balık", "Masal", "Su", "Kuyruk", "Okyanus"] }
+        ];
+
+        let gameWords = [];
+        let teams = [{ name: "", score: 0 }, { name: "", score: 0 }];
+        let currentTeamIndex = 0;
+        let turnTime = 60;
+        let maxPasses = 3;
+        let currentPasses = 3;
+        let targetScore = 20;
+        let timeRemaining = 0;
+        let timerInterval = null;
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            teams[0].name = document.getElementById('teamA-name').value || "1. Takım";
+            teams[1].name = document.getElementById('teamB-name').value || "2. Takım";
+            turnTime = parseInt(document.getElementById('time-setting').value) || 60;
+            maxPasses = parseInt(document.getElementById('pass-setting').value) || 3;
+            targetScore = parseInt(document.getElementById('target-score').value) || 20;
+
+            document.getElementById('trans-nameA').innerText = teams[0].name;
+            document.getElementById('trans-nameB').innerText = teams[1].name;
+            document.getElementById('end-nameA').innerText = teams[0].name;
+            document.getElementById('end-nameB').innerText = teams[1].name;
+
+            gameWords = shuffle([...wordPool]);
+            currentTeamIndex = 0;
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            showTransitionScreen(true);
+        }
+
+        function showTransitionScreen(isFirstTurn = false) {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('transition-screen').classList.remove('hidden');
+
+            document.getElementById('transition-title').innerText = isFirstTurn ? "OYUN BAŞLIYOR!" : "SÜRE BİTTİ!";
+            document.getElementById('scoreA-val').innerText = teams[0].score;
+            document.getElementById('scoreB-val').innerText = teams[1].score;
+            
+            document.getElementById('trans-scoreA').classList.toggle('active', currentTeamIndex === 0);
+            document.getElementById('trans-scoreB').classList.toggle('active', currentTeamIndex === 1);
+
+            document.getElementById('next-team-name').innerText = teams[currentTeamIndex].name;
+        }
+
+        function startTurn() {
+            document.getElementById('transition-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            currentPasses = maxPasses;
+            timeRemaining = turnTime;
+            
+            document.getElementById('current-team-display').innerText = teams[currentTeamIndex].name;
+            document.getElementById('current-score-display').innerText = teams[currentTeamIndex].score;
+            document.getElementById('timer-display').innerText = timeRemaining;
+            updatePassUI();
+
+            drawCard();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timer-display').innerText = timeRemaining;
+                if (timeRemaining <= 0) {
+                    endTurn();
+                }
+            }, 1000);
+        }
+
+        function drawCard() {
+            if (gameWords.length === 0) {
+                gameWords = shuffle([...wordPool]); 
+            }
+            const currentCard = gameWords.pop();
+            
+            document.getElementById('word').innerText = currentCard.word;
+            const tabooListHTML = currentCard.forbidden.map(w => `<div class="taboo-word">${w}</div>`).join('');
+            document.getElementById('taboo-list').innerHTML = tabooListHTML;
+
+            const alertBox = document.getElementById('special-alert');
+            if(currentCard.alert) {
+                alertBox.innerText = currentCard.alert;
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        function updateScore(points) {
+            teams[currentTeamIndex].score += points;
+            document.getElementById('current-score-display').innerText = teams[currentTeamIndex].score;
+            
+            if (teams[currentTeamIndex].score >= targetScore) {
+                endGame();
+                return;
+            }
+            drawCard();
+        }
+
+        function handleCorrect() { updateScore(1); }
+        function handleTaboo() { updateScore(-1); }
+        function handlePass() {
+            if (currentPasses > 0) {
+                currentPasses--;
+                updatePassUI();
+                drawCard();
+            }
+        }
+
+        function updatePassUI() {
+            document.getElementById('pass-count-display').innerText = currentPasses;
+            const passBtn = document.getElementById('btn-pass');
+            if (currentPasses <= 0) {
+                passBtn.style.opacity = "0.5";
+                passBtn.style.pointerEvents = "none";
+            } else {
+                passBtn.style.opacity = "1";
+                passBtn.style.pointerEvents = "auto";
+            }
+        }
+
+        function endTurn() {
+            clearInterval(timerInterval);
+            currentTeamIndex = currentTeamIndex === 0 ? 1 : 0;
+            showTransitionScreen();
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('transition-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            document.getElementById('end-scoreA').innerText = teams[0].score;
+            document.getElementById('end-scoreB').innerText = teams[1].score;
+            document.getElementById('winner-text').innerText = "KAZANAN: " + teams[currentTeamIndex].name + "!";
+            
+            fireConfetti();
+        }
+
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.classList.remove('hidden');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+
+            for (let i = 0; i < 200; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    w: Math.random() * 15 + 5,
+                    h: Math.random() * 15 + 5,
+                    vx: Math.random() * 6 - 3,
+                    vy: Math.random() * 4 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    rotSpeed: Math.random() * 10 - 5
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.rotSpeed;
+                    
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.restore();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
