@@ -5,63 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sınıf Tabu Oyunu</title>
     <style>
-        /* Tam Ekran ve Kaydırma (Scroll) Engelleme Ayarları */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
-        /* height: 100vh ve overflow: hidden dikey kaydırmayı tamamen yok eder */
         html, body { height: 100%; overflow: hidden; background-color: #f0f4f8; color: #333; user-select: none; touch-action: manipulation; }
-        
         .container { height: 100%; width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; padding: 2vh 2vw; justify-content: center; }
         .hidden { display: none !important; }
 
-        /* Başlıklar ve Metinler (vh ile dikey yüksekliğe göre otomatik boyutlanır) */
-        h1 { font-size: 6vh; color: #2c3e50; margin-bottom: 2vh; text-transform: uppercase; text-shadow: 2px 2px 0px #fff; }
-        h2 { font-size: 4vh; color: #34495e; margin-bottom: 2vh; }
-        p { font-size: 2.5vh; margin-bottom: 1vh; }
+        h1 { font-size: 5.5vh; color: #2c3e50; margin-bottom: 2vh; text-transform: uppercase; text-shadow: 2px 2px 0px #fff; text-align: center; }
+        h2 { font-size: 3.8vh; color: #34495e; margin-bottom: 2vh; text-align: center; }
+        p { font-size: 2.3vh; margin-bottom: 1vh; text-align: center; }
 
-        /* Form Elemanları */
-        input[type="text"], input[type="number"] { width: 90%; padding: 2vh; margin: 1vh 0; font-size: 2.5vh; border: 3px solid #bdc3c7; border-radius: 15px; text-align: center; }
-        .settings-group { background: #fff; padding: 3vh; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 2vh; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; }
+        input[type="text"], input[type="number"] { width: 90%; padding: 1.8vh; margin: 0.8vh auto; font-size: 2.3vh; border: 3px solid #bdc3c7; border-radius: 15px; text-align: center; display: block; }
+        .settings-group { background: #fff; padding: 2.5vh; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1.8vh; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; }
 
-        /* Butonlar */
         button { border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
         button:active { transform: scale(0.95); }
-        .btn-start, .btn-ready { background-color: #3498db; width: 100%; max-width: 600px; font-size: 4vh; padding: 3vh; margin: 2vh auto 0 auto; display: block; }
+        .btn-start, .btn-ready { background-color: #3498db; width: 100%; max-width: 600px; font-size: 3.8vh; padding: 2.5vh; margin: 1.5vh auto 0 auto; display: block; }
         .btn-ready { background-color: #9b59b6; }
 
-        /* Oyun Ekranı Bileşenleri - Üst Bar */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 2vh 3vw; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1.5vh; font-size: 3vh; font-weight: bold; flex-shrink: 0; }
-        .timer { color: #e74c3c; font-size: 5vh; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 1.5vh 3vw; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1.5vh; font-size: 2.8vh; font-weight: bold; flex-shrink: 0; }
+        .timer { color: #e74c3c; font-size: 4.5vh; }
         
-        /* Kart Tasarımı (flex-grow: 1 ile kalan tüm ekranı kaplar) */
         .card { background: #fff; border-radius: 20px; box-shadow: 0 8px 15px rgba(0,0,0,0.15); margin-bottom: 1.5vh; border-top: 1.5vh solid #3498db; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2vh 2vw; }
         
-        .target-word { font-size: 7vh; color: #2c3e50; font-weight: 900; margin-bottom: 3vh; text-transform: uppercase; letter-spacing: 2px; }
-        .taboo-word { font-size: 3.8vh; color: #7f8c8d; margin: 1vh 0; font-weight: bold; }
+        .target-word { font-size: 6vh; color: #2c3e50; font-weight: 900; margin-bottom: 2.5vh; text-transform: uppercase; letter-spacing: 1px; }
+        .taboo-word { font-size: 3.3vh; color: #7f8c8d; margin: 0.8vh 0; font-weight: bold; }
         
-        /* Özel Uyarı Kutusu */
-        .special-alert { background-color: #ffeaea; color: #c0392b; border: 3px solid #e74c3c; padding: 1.5vh 2vw; border-radius: 15px; margin-top: 2vh; font-size: 2.8vh; font-weight: 900; display: none; text-transform: uppercase; animation: pulse 1s infinite alternate; width: 90%; text-align: center; }
+        .special-alert { background-color: #ffeaea; color: #c0392b; border: 3px solid #e74c3c; padding: 1.2vh 2vw; border-radius: 15px; margin-top: 1.5vh; font-size: 2.5vh; font-weight: 900; display: none; text-transform: uppercase; animation: pulse 1s infinite alternate; width: 90%; text-align: center; }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.02); } }
 
-        /* Aksiyon Butonları Alanı */
-        .pass-info { font-size: 3vh; font-weight: bold; margin-bottom: 1vh; flex-shrink: 0; text-align: center; width: 100%; }
-        .action-buttons { display: flex; gap: 2vw; width: 100%; justify-content: space-between; flex-shrink: 0; padding-bottom: 1vh; }
-        .action-buttons button { flex: 1; font-size: 3.5vh; padding: 3vh 0; }
+        .pass-info { font-size: 2.8vh; font-weight: bold; margin-bottom: 0.8vh; flex-shrink: 0; text-align: center; width: 100%; }
+        .action-buttons { display: flex; gap: 2vw; width: 100%; justify-content: space-between; flex-shrink: 0; padding-bottom: 0.5vh; }
+        .action-buttons button { flex: 1; font-size: 3.2vh; padding: 2.5vh 0; }
         .btn-correct { background-color: #2ecc71; }
         .btn-taboo { background-color: #e74c3c; }
         .btn-pass { background-color: #f1c40f; color: #333; }
 
-        /* Skor Tablosu */
-        .score-board { display: flex; justify-content: space-around; background: #fff; padding: 3vh; border-radius: 20px; margin: 3vh auto; box-shadow: 0 6px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .score-board { display: flex; justify-content: space-around; background: #fff; padding: 2.5vh; border-radius: 20px; margin: 2vh auto; box-shadow: 0 6px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
         .score-box { text-align: center; transition: all 0.3s; }
-        .score-box.active { color: #3498db; transform: scale(1.15); font-weight: bold; }
-        .score-box h3 { font-size: 3.5vh; }
-        .score-box span { font-size: 6vh; font-weight: bold; }
+        .score-box.active { color: #3498db; transform: scale(1.1); font-weight: bold; }
+        .score-box h3 { font-size: 3vh; }
+        .score-box span { font-size: 5vh; font-weight: bold; }
 
-        /* Setup / Transition hizalama */
+        .celebration-box { background: #fff; padding: 2.5vh; border-radius: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin: 2vh auto 0 auto; text-align: center; }
+        .celebration-title { font-size: 3.5vh; font-weight: bold; color: #8e44ad; margin-bottom: 1.5vh; text-transform: uppercase; }
+        .celebration-buttons { display: flex; gap: 2vw; justify-content: center; }
+        .btn-sane { background-color: #e67e22; font-size: 3vh; padding: 2vh 4vw; flex: 1; }
+        .btn-yamal { background-color: #2980b9; font-size: 3vh; padding: 2vh 4vw; flex: 1; }
+
+        #video-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #video-player { max-width: 90vw; max-height: 80vh; border-radius: 15px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .btn-close-video { background-color: #e74c3c; font-size: 3vh; padding: 1.5vh 4vw; margin-top: 2vh; }
+
         #setup-screen, #transition-screen, #end-screen { align-items: center; }
-
-        /* Konfeti Canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
     </style>
 </head>
@@ -84,7 +79,7 @@
             <p>Bitiş Skoru:</p>
             <input type="number" id="target-score" value="20">
         </div>
-        <button class="btn-start" onclick="startGame()">Oyuna Başla</button>
+        <button type="button" id="btn-start-game" class="btn-start">Oyuna Başla</button>
     </div>
 
     <!-- 2. GEÇİŞ / MOLA EKRANI -->
@@ -100,9 +95,9 @@
                 <span id="scoreB-val">0</span>
             </div>
         </div>
-        <h2 style="color: #e74c3c; margin-top: 3vh;">Sıradaki Takım: <br><span id="next-team-name" style="font-size: 6vh; color: #2c3e50;"></span></h2>
-        <p style="margin-top: 2vh;">Cihazı anlatıcıya verin. Hazır olduğunuzda süreyi başlatın!</p>
-        <button class="btn-ready" onclick="startTurn()">HAZIRIM, BAŞLAT!</button>
+        <h2 style="color: #e74c3c; margin-top: 2vh;">Sıradaki Takım: <br><span id="next-team-name" style="font-size: 5vh; color: #2c3e50;"></span></h2>
+        <p style="margin-top: 1.5vh;">Cihazı anlatıcıya verin. Hazır olduğunuzda süreyi başlatın!</p>
+        <button type="button" id="btn-ready-turn" class="btn-ready">HAZIRIM, BAŞLAT!</button>
     </div>
 
     <!-- 3. OYUN EKRANI -->
@@ -124,16 +119,16 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-taboo" onclick="handleTaboo()">TABU<br>(-1)</button>
-            <button class="btn-pass" id="btn-pass" onclick="handlePass()">PAS</button>
-            <button class="btn-correct" onclick="handleCorrect()">DOĞRU<br>(+1)</button>
+            <button type="button" id="btn-taboo" class="btn-taboo">TABU (-1)</button>
+            <button type="button" id="btn-pass" class="btn-pass">PAS</button>
+            <button type="button" id="btn-correct" class="btn-correct">DOĞRU (+1)</button>
         </div>
     </div>
 
     <!-- 4. OYUN BİTİŞ EKRANI -->
     <div id="end-screen" class="container hidden">
         <h1>OYUN BİTTİ!</h1>
-        <h2 id="winner-text" style="font-size: 6vh; color: #2ecc71; margin: 3vh 0; text-transform: uppercase;">KAZANAN: A Takımı</h2>
+        <h2 id="winner-text" style="font-size: 5vh; color: #2ecc71; margin: 1.5vh 0; text-transform: uppercase;">KAZANAN: A Takımı</h2>
         <div class="score-board">
             <div class="score-box">
                 <h3 id="end-nameA">A Takımı</h3>
@@ -144,12 +139,26 @@
                 <span id="end-scoreB">0</span>
             </div>
         </div>
-        <button class="btn-start" onclick="location.reload()" style="margin-top: 4vh;">YENİDEN OYNA</button>
+
+        <div class="celebration-box">
+            <div class="celebration-title">SANE Mİ YAMAL MI?</div>
+            <div class="celebration-buttons">
+                <button type="button" id="btn-sane" class="btn-sane">SANE</button>
+                <button type="button" id="btn-yamal" class="btn-yamal">YAMAL</button>
+            </div>
+        </div>
+
+        <button type="button" id="btn-restart" class="btn-start" style="margin-top: 3vh;">YENİDEN OYNA</button>
+    </div>
+
+    <!-- 5. VİDEO MODAL -->
+    <div id="video-modal" class="hidden">
+        <video id="video-player" controls></video>
+        <button type="button" id="btn-close-video" class="btn-close-video">KAPAT / OYUNA DÖN</button>
     </div>
 
     <script>
         const wordPool = [
-            // Sizin Özel Kelimeleriniz
             { word: "ZENCİ", forbidden: ["Siyahi", "Ten", "Afrika", "Irk", "Koyu"] },
             { word: "ÇEREZ", forbidden: ["Fındık", "Fıstık", "Kuruyemiş", "Cips", "Çekirdek"] },
             { word: "DAYI", forbidden: ["Anne", "Kardeş", "Amca", "Teyze", "Akraba"] },
@@ -163,14 +172,11 @@
             { word: "TRABZONSPOR", forbidden: ["Bordo", "Mavi", "Hamsi", "Karadeniz", "61"] },
             { word: "BURSASPOR", forbidden: ["Yeşil", "Beyaz", "Timsah", "Şampiyon", "Teksas"] },
             { word: "MAHVOLMUŞ", forbidden: ["Kral", "Viego", "League of Legends", "Kılıç", "Afet"] },
-            
-            // Özel Kurallı Kart: Kuti1111 (Kutay)
             { 
                 word: "KUTİ1111", 
                 forbidden: ["Kutay", "Sigma", "Alfa", "Zenci", "Büyük Babacan"],
                 alert: "⚠️ DİKKAT: Beni elle gösterdiğin an afrikaya sürgün edileceksin!"
             },
-            
             { word: "TUNG TUNG TUNG SAHUR", forbidden: ["TikTok", "Akım", "Brainrot", "Ramazan", "Davul"] },
             { word: "OSMAN TUŞ", forbidden: ["İnternet", "Fenomen", "Nambir", "Video", "Sosyal Medya"] },
             { word: "MANGO", forbidden: ["Meyve", "Tropikal", "Sarı", "Tatlı", "Kabuk"] },
@@ -186,15 +192,46 @@
             { word: "ADEBAYOR", forbidden: ["Futbolcu", "Arsenal", "3-2-1", "Togo", "Başakşehir"] },
             { word: "LVBEL C5", forbidden: ["Rap", "Şarkıcı", "Baba", "Müzik", "Konser"] },
             { word: "MÜDÜR", forbidden: ["Okul", "Zil", "Disiplin", "Odası", "Teneffüs"] },
-            
-            // Özel Kurallı Kart: Deniz
             { 
                 word: "DENİZ", 
                 forbidden: ["Kum", "Güneş", "Yüzmek", "Dalga", "Su"],
                 alert: "⚠️ DİKKAT: Deniz'i elle gösterdiğin an infazın verilecek!"
             },
-
-            // Genişletilmiş Kelimeler
+            { word: "67", forbidden: ["Mango", "Boyun ağrısı", "Hardal", "Komik", "Osman Tuş"] },
+            { word: "ŞİKE", forbidden: ["Maç", "Para", "Galatasaray", "Hile", "Futbol"] },
+            { word: "YEŞİLOLDUN", forbidden: ["İsmail Kartal", "Fenerbahçe", "Kadın", "İdol", "Dövmek"] },
+            { word: "GÜNDÜZ", forbidden: ["İsmail Kartal", "Duygusal", "Güneş", "Aydınlık", "Gece"] },
+            { word: "DUYGUSAL", forbidden: ["İsmail Kartal", "Ağlamak", "His", "Kalp", "Üzülmek"] },
+            { word: "UZİ EL CHAVO", forbidden: ["Rap", "Şarkıcı", "Müzik", "Chavo", "Konser"] },
+            { word: "ATİ242", forbidden: ["Rap", "Şarkı", "Müzik", "Antalya", "Konser"] },
+            { word: "OBEZ", forbidden: ["Kilo", "Şişman", "Yemek", "Diyet", "Yağ"] },
+            { word: "KAFA VURUŞU", forbidden: ["Gol", "Futbol", "Kafa", "Şut", "Alın"] },
+            { word: "VPN", forbidden: ["İnternet", "Engel", "Yasak", "Bağlantı", "IP"] },
+            { word: "KÖLE", forbidden: ["Efendi", "Zincir", "Çalışmak", "Esir", "Azad"] },
+            { word: "SİYAHİ", forbidden: ["Ten", "Renk", "Beyaz", "Irk", "Zenci"] },
+            { word: "ARMUT", forbidden: ["Meyve", "Ağaç", "Elma", "Tatlı", "Kabuk"] },
+            { word: "AKILLI TAHTA PARMAK FUTBOLU", forbidden: ["Okul", "Sınıf", "Oyun", "Dokunmatik", "Tahta"] },
+            { word: "TABU", forbidden: ["Kelime", "Yasak", "Anlatmak", "Oyun", "Kart"] },
+            { word: "AYAK", forbidden: ["Parmak", "Bacak", "Topuk", "Taban", "Ayakkabı"] },
+            { word: "İSRAİL", forbidden: ["Orta Doğu", "Tel Aviv", "Kudüs", "Başkent", "Ülke"] },
+            { word: "TÜRKİYE", forbidden: ["Ankara", "Cumhuriyet", "Bayrak", "Vatan", "Ülke"] },
+            { word: "DARBE", forbidden: ["15 Temmuz", "Asker", "Yönetim", "İhtilal", "General"] },
+            { word: "BOYUN AĞRISI", forbidden: ["Boyun", "Ağrı", "Kas", "Tutulma", "Baş"] },
+            { word: "HARDAL", forbidden: ["Sos", "Sarı", "Yemek", "Hamburger", "Acı"] },
+            { word: "BİCEPS", forbidden: ["Kas", "Kol", "Spor", "Vücut", "Gym"] },
+            { word: "BATUFLEX", forbidden: ["Rap", "Şarkıcı", "Dalga", "Müzik", "Trend"] },
+            { word: "ÇAPRAZ BAĞ", forbidden: ["Sakatlık", "Diz", "Futbol", "Ameliyat", "Futbolcu"] },
+            { word: "VAR", forbidden: ["Hakem", "İnceleme", "Çizgi", "Pozisyon", "Futbol"] },
+            { word: "ŞAMPİYON", forbidden: ["Birinci", "Kupa", "Takım", "Zirve", "Lider"] },
+            { word: "ŞİŞE", forbidden: ["Cam", "Plastik", "Su", "Kapak", "Doldurmak"] },
+            { word: "ERKEK", forbidden: ["Adam", "Bay", "Kadın", "Cinsiyet", "Bıyık"] },
+            { word: "KADIN", forbidden: ["Bayan", "Kız", "Erkek", "Anne", "Cinsiyet"] },
+            { word: "ORKUN IŞITMAK", forbidden: ["YouTuber", "Video", "İnternet", "Fenomen", "Challenge"] },
+            { word: "BARIŞ ALPER YILMAZ", forbidden: ["Galatasaray", "Millî Takım", "Futbolcu", "Sağ Kanat", "Saç"] },
+            { word: "RİZZ", forbidden: ["Karizma", "Tavlamak", "Sosyal Medya", "Genç", "Çekicilik"] },
+            { word: "MARCO ASENSIO", forbidden: ["Futbolcu", "Matador", "İspanya", "Fenerbahçe", "İsmail Kartal"] },
+            { word: "MİLLÎ TAKIM", forbidden: ["Ay-Yıldız", "Türkiye", "Futbol", "Millî", "Forma"] },
+            { word: "MATADOR", forbidden: ["Boğa", "İspanya", "Kırmızı", "Arena", "Asensio"] },
             { word: "BLOK3", forbidden: ["Rap", "Şarkı", "Vur", "Aklına Gelir", "Konser"] },
             { word: "SEMİCENK", forbidden: ["Müzik", "Şarkı", "Pop", "Şarkıcı", "Ses"] },
             { word: "KICK", forbidden: ["Yayın", "Canlı", "Platform", "Çat", "İnternet"] },
@@ -281,10 +318,27 @@
             { word: "ÇÖP KOVASI", forbidden: ["Sınıf", "Atmak", "Kağıt", "Köşe", "Poşet"] },
             { word: "SİLGİ", forbidden: ["Kalem", "Yazı", "Hata", "Beyaz", "Yanlış"] },
             { word: "KURŞUN KALEM", forbidden: ["Yazmak", "Açacak", "Uç", "Defter", "Resim"] },
-            { word: "KAPATAN VURUŞU", forbidden: ["Futbol", "Gol", "Şut", "Kaleci", "Ağlar"] },
             { word: "GÜNEŞ", forbidden: ["Sıcak", "Gökyüzü", "Sarı", "Isı", "Isıtmak"] },
             { word: "RÜZGÂR", forbidden: ["Esmek", "Soğuk", "Fırtına", "Hava", "Yaprak"] },
-            { word: "DENİZ KIZI", forbidden: ["Balık", "Masal", "Su", "Kuyruk", "Okyanus"] }
+            { word: "DENİZ KIZI", forbidden: ["Balık", "Masal", "Su", "Kuyruk", "Okyanus"] },
+            { word: "SELÇUKSPORTS", forbidden: ["Maç", "Kaçak", "Yayın", "Futbol", "İzlemek"] },
+            { word: "AHMET KAYA", forbidden: ["Müzik", "Şarkı", "Saz", "Protest", "Sanatçı"] },
+            { word: "KASIMPAŞA", forbidden: ["Semt", "İstanbul", "Paşa", "Futbol", "Kulüp"] },
+            { word: "BAŞAKŞEHİR", forbidden: ["İstanbul", "Takım", "Turuncu", "Başak", "Süper Lig"] },
+            { word: "TRABZON", forbidden: ["Karadeniz", "Hamsi", "Şehir", "Mavi", "Bordo"] },
+            { word: "BURSA", forbidden: ["İskender", "Heykel", "Uludağ", "Yeşil", "Şehir"] },
+            { word: "ANKARA", forbidden: ["Başkent", "Anıtkabir", "Simit", "Ayaz", "Ankara"] },
+            { word: "İSTANBUL", forbidden: ["Boğaz", "Megakent", "Tarih", "İki Yaka", "Kalabalık"] },
+            { word: "İZMİR", forbidden: ["Ege", "Saat Kulesi", "Boyoz", "Körfez", "Deniz"] },
+            { word: "ANTALYA", forbidden: ["Tatil", "Deniz", "Turizm", "Yaz", "Sıcak"] },
+            { word: "KAHRAMANMARAŞ", forbidden: ["Dondurma", "Deprem", "Maraş", "Biber", "Şehir"] },
+            { word: "KONYA", forbidden: ["Etli Ekmek", "Mevlana", "Şehir", "Ovalar", "Selçuklu"] },
+            { word: "YOUTUBE", forbidden: ["Video", "İzlemek", "Kanal", "Abone", "Platform"] },
+            { word: "GOOGLE", forbidden: ["Arama", "İnternet", "Motor", "Tarayıcı", "Sayfa"] },
+            { word: "WHATSAPP", forbidden: ["Mesaj", "Sohbet", "İletişim", "Mavi Tik", "Grup"] },
+            { word: "TÜRKÇE", forbidden: ["Ders", "Dil", "Kelime", "Sınav", "Kompozisyon"] },
+            { word: "MATEMATİK", forbidden: ["Sayı", "Denklem", "Problem", "Sınav", "İşlem"] },
+            { word: "GİGACHAD", forbidden: ["Alpha", "Yüz", "Güçlü", "Adam", "Bakış"] }
         ];
 
         let gameWords = [];
@@ -297,6 +351,10 @@
         let timeRemaining = 0;
         let timerInterval = null;
 
+        // Video Havuzu Yönetimi (1-12)
+        const TOTAL_VIDEOS = 12;
+        let availableVideos = Array.from({ length: TOTAL_VIDEOS }, (_, i) => i + 1);
+
         function shuffle(array) {
             let currentIndex = array.length, randomIndex;
             while (currentIndex !== 0) {
@@ -307,23 +365,33 @@
             return array;
         }
 
+        // Güvenli Metin Atama Yardımcısı
+        function setElementText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+
         function startGame() {
-            teams[0].name = document.getElementById('teamA-name').value || "1. Takım";
-            teams[1].name = document.getElementById('teamB-name').value || "2. Takım";
-            turnTime = parseInt(document.getElementById('time-setting').value) || 60;
-            maxPasses = parseInt(document.getElementById('pass-setting').value) || 3;
-            targetScore = parseInt(document.getElementById('target-score').value) || 20;
+            try {
+                teams[0].name = document.getElementById('teamA-name').value || "1. Takım";
+                teams[1].name = document.getElementById('teamB-name').value || "2. Takım";
+                turnTime = parseInt(document.getElementById('time-setting').value) || 60;
+                maxPasses = parseInt(document.getElementById('pass-setting').value) || 3;
+                targetScore = parseInt(document.getElementById('target-score').value) || 20;
 
-            document.getElementById('trans-nameA').innerText = teams[0].name;
-            document.getElementById('trans-nameB').innerText = teams[1].name;
-            document.getElementById('end-nameA').innerText = teams[0].name;
-            document.getElementById('end-nameB').innerText = teams[1].name;
+                setElementText('trans-nameA', teams[0].name);
+                setElementText('trans-nameB', teams[1].name);
+                setElementText('end-nameA', teams[0].name);
+                setElementText('end-nameB', teams[1].name);
 
-            gameWords = shuffle([...wordPool]);
-            currentTeamIndex = 0;
-            
-            document.getElementById('setup-screen').classList.add('hidden');
-            showTransitionScreen(true);
+                gameWords = shuffle([...wordPool]);
+                currentTeamIndex = 0;
+                
+                document.getElementById('setup-screen').classList.add('hidden');
+                showTransitionScreen(true);
+            } catch (err) {
+                alert("Hata oluştu: " + err.message);
+            }
         }
 
         function showTransitionScreen(isFirstTurn = false) {
@@ -477,6 +545,47 @@
             }
             animate();
         }
+
+        // Tekrarsız Random Video Seçici
+        function playRandomVideo() {
+            if (availableVideos.length === 0) {
+                availableVideos = Array.from({ length: TOTAL_VIDEOS }, (_, i) => i + 1);
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableVideos.length);
+            const selectedVideoNum = availableVideos.splice(randomIndex, 1)[0];
+
+            const videoPath = `video${selectedVideoNum}.mp4`;
+            
+            const player = document.getElementById('video-player');
+            player.src = videoPath;
+            player.load();
+            document.getElementById('video-modal').classList.remove('hidden');
+            
+            player.play().catch(err => {
+                alert(`Video oynatılamadı! Lütfen '${videoPath}' dosyasının index.html ile aynı klasörde olduğundan emin olun.`);
+            });
+        }
+
+        function closeVideo() {
+            const player = document.getElementById('video-player');
+            player.pause();
+            player.src = "";
+            document.getElementById('video-modal').classList.add('hidden');
+        }
+
+        // Olay Bağlayıcılar
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-start-game').addEventListener('click', startGame);
+            document.getElementById('btn-ready-turn').addEventListener('click', startTurn);
+            document.getElementById('btn-correct').addEventListener('click', handleCorrect);
+            document.getElementById('btn-taboo').addEventListener('click', handleTaboo);
+            document.getElementById('btn-pass').addEventListener('click', handlePass);
+            document.getElementById('btn-restart').addEventListener('click', () => location.reload());
+            document.getElementById('btn-sane').addEventListener('click', playRandomVideo);
+            document.getElementById('btn-yamal').addEventListener('click', playRandomVideo);
+            document.getElementById('btn-close-video').addEventListener('click', closeVideo);
+        });
     </script>
 </body>
 </html>
