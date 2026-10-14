@@ -135,13 +135,13 @@
                 <span id="end-scoreA">0</span>
             </div>
             <div class="score-box">
-                <h3 id="end-nameB">B Takımı</h3>
+                <h3 id="end-scoreB">B Takımı</h3>
                 <span id="end-scoreB">0</span>
             </div>
         </div>
 
         <div class="celebration-box">
-            <div class="celebration-title">SANE Mİ YAMAL MI?</div>
+            <div class="celebration-title">SANE OR YAMAL</div>
             <div class="celebration-buttons">
                 <button type="button" id="btn-sane" class="btn-sane">SANE</button>
                 <button type="button" id="btn-yamal" class="btn-yamal">YAMAL</button>
@@ -351,9 +351,31 @@
         let timeRemaining = 0;
         let timerInterval = null;
 
-        // Video Havuzu Yönetimi (1-12)
-        const TOTAL_VIDEOS = 12;
-        let availableVideos = Array.from({ length: TOTAL_VIDEOS }, (_, i) => i + 1);
+        // STREAMABLE VİDEO LİNKLERİ (Buraya 20 videonun Streamable linkini ekleyin)
+        const videoUrls = [
+            "https://files.catbox.moe/i33o2z.mp4",
+            "https://files.catbox.moe/bzreep.mp4",
+            "https://files.catbox.moe/vtjkcb.mp4",
+            "https://files.catbox.moe/jzml96.mp4",
+            "https://files.catbox.moe/9plv4i.mp4",
+            "https://files.catbox.moe/hniqdy.mp4",
+            "https://files.catbox.moe/i39tif.mp4",
+            "https://files.catbox.moe/o5twm0.mp4",
+            "https://files.catbox.moe/92587n.mp4",
+            "https://files.catbox.moe/fkror1.mp4",
+            "https://files.catbox.moe/qgbt3e.mp4",
+            "https://files.catbox.moe/p40k5v.mp4",
+            "https://files.catbox.moe/ph0wzk.mp4",
+            "https://files.catbox.moe/zefdap.mp4",
+            "https://files.catbox.moe/kzjr8m.mp4",
+            "https://files.catbox.moe/75qr1a.mp4",
+            "https://files.catbox.moe/7qvv3a.mp4",
+            "https://files.catbox.moe/d8c398.mp4",
+            "https://files.catbox.moe/cq20gl.mp4",
+            "https://files.catbox.moe/k15wyz.mp4"
+        ];
+
+        let availableVideoIndices = Array.from({ length: videoUrls.length }, (_, i) => i);
 
         function shuffle(array) {
             let currentIndex = array.length, randomIndex;
@@ -365,7 +387,6 @@
             return array;
         }
 
-        // Güvenli Metin Atama Yardımcısı
         function setElementText(id, text) {
             const el = document.getElementById(id);
             if (el) el.innerText = text;
@@ -546,24 +567,24 @@
             animate();
         }
 
-        // Tekrarsız Random Video Seçici
+        // Tekrarsız Random Video Seçici (Online Linkler)
         function playRandomVideo() {
-            if (availableVideos.length === 0) {
-                availableVideos = Array.from({ length: TOTAL_VIDEOS }, (_, i) => i + 1);
+            if (availableVideoIndices.length === 0) {
+                availableVideoIndices = Array.from({ length: videoUrls.length }, (_, i) => i);
             }
 
-            const randomIndex = Math.floor(Math.random() * availableVideos.length);
-            const selectedVideoNum = availableVideos.splice(randomIndex, 1)[0];
+            const randomIndex = Math.floor(Math.random() * availableVideoIndices.length);
+            const selectedIndex = availableVideoIndices.splice(randomIndex, 1)[0];
 
-            const videoPath = `video${selectedVideoNum}.mp4`;
+            const selectedUrl = videoUrls[selectedIndex];
             
             const player = document.getElementById('video-player');
-            player.src = videoPath;
+            player.src = selectedUrl;
             player.load();
             document.getElementById('video-modal').classList.remove('hidden');
             
             player.play().catch(err => {
-                alert(`Video oynatılamadı! Lütfen '${videoPath}' dosyasının index.html ile aynı klasörde olduğundan emin olun.`);
+                alert("Video oynatılamadı! İnternet bağlantınızı veya video linkinizi kontrol edin.");
             });
         }
 
