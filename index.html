@@ -54,6 +54,7 @@
 
         #video-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #video-player { max-width: 90vw; max-height: 80vh; border-radius: 15px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .loading-text { color: #fff; font-size: 3vh; margin-bottom: 2vh; }
         .btn-close-video { background-color: #e74c3c; font-size: 3vh; padding: 1.5vh 4vw; margin-top: 2vh; }
 
         #setup-screen, #transition-screen, #end-screen { align-items: center; }
@@ -153,7 +154,8 @@
 
     <!-- 5. VİDEO MODAL -->
     <div id="video-modal" class="hidden">
-        <video id="video-player" controls></video>
+        <div id="video-loading" class="loading-text">Video yükleniyor, lütfen bekleyin...</div>
+        <video id="video-player" controls preload="auto"></video>
         <button type="button" id="btn-close-video" class="btn-close-video">KAPAT / OYUNA DÖN</button>
     </div>
 
@@ -351,7 +353,7 @@
         let timeRemaining = 0;
         let timerInterval = null;
 
-        // STREAMABLE VİDEO LİNKLERİ (Buraya 20 videonun Streamable linkini ekleyin)
+        // CATBOX VİDEO LİNKLERİ (Kendi Catbox linklerinizi buraya ekleyin)
         const videoUrls = [
             "https://files.catbox.moe/i33o2z.mp4",
             "https://files.catbox.moe/bzreep.mp4",
@@ -401,10 +403,10 @@
             "https://files.catbox.moe/xbe307.mp4",
             "https://files.catbox.moe/vd0vi4.mp4",
             "https://files.catbox.moe/jgnt03.mp4",
-            "https://files.catbox.moe/u7ki1f.mp4",
-            "https://files.catbox.moe/i0e66c.mp4",
-            "https://files.catbox.moe/26yi0r.mp4",
-            "https://files.catbox.moe/by0npp.mp4"
+            "https://files.catbox.moe/giqogl.mp4",
+            "https://files.catbox.moe/fisst2.mp4",
+            "https://files.catbox.moe/zr6r1g.mp4",
+            "https://files.catbox.moe/5dv1lb.mp4"
         ];
 
         let availableVideoIndices = Array.from({ length: videoUrls.length }, (_, i) => i);
@@ -599,35 +601,56 @@
             animate();
         }
 
-        // Tekrarsız Random Video Seçici (Online Linkler)
+        // Düzeltilmiş Video Seçici
         function playRandomVideo() {
+            if (videoUrls.length === 0 || videoUrls[0].includes("EXAMPLE")) {
+                alert("Lütfen koddaki 'videoUrls' kısmına Catbox linklerinizi ekleyin!");
+                return;
+            }
+
             if (availableVideoIndices.length === 0) {
                 availableVideoIndices = Array.from({ length: videoUrls.length }, (_, i) => i);
             }
 
             const randomIndex = Math.floor(Math.random() * availableVideoIndices.length);
             const selectedIndex = availableVideoIndices.splice(randomIndex, 1)[0];
-
             const selectedUrl = videoUrls[selectedIndex];
             
             const player = document.getElementById('video-player');
-            player.src = selectedUrl;
-            player.load();
-            document.getElementById('video-modal').classList.remove('hidden');
+            const loadingText = document.getElementById('video-loading');
             
-            player.play().catch(err => {
-                alert("Video oynatılamadı! İnternet bağlantınızı veya video linkinizi kontrol edin.");
-            });
+            loadingText.classList.remove('hidden');
+            player.style.display = "none";
+            
+            // Olay dinleyicileri
+            player.oncanplay = () => {
+                loadingText.classList.add('hidden');
+                player.style.display = "block";
+                player.play().catch(e => console.log("Oynatma engellendi: ", e));
+            };
+
+            player.onerror = () => {
+                // Sadece pencere açıkken ve boş kapatılmamışken gerçek hatayı bas
+                if (!document.getElementById('video-modal').classList.contains('hidden') && player.getAttribute('src')) {
+                    loadingText.classList.add('hidden');
+                    alert("Video yüklenirken bir hata oluştu. Bağlantınızı veya linki kontrol edin.");
+                }
+            };
+
+            player.src = selectedUrl;
+            document.getElementById('video-modal').classList.remove('hidden');
         }
 
         function closeVideo() {
             const player = document.getElementById('video-player');
+            player.oncanplay = null;
+            player.onerror = null;
             player.pause();
-            player.src = "";
+            player.removeAttribute('src'); // src temizliği hata tetiklemesin
+            player.load();
             document.getElementById('video-modal').classList.add('hidden');
         }
 
-        // Olay Bağlayıcılar
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('btn-start-game').addEventListener('click', startGame);
             document.getElementById('btn-ready-turn').addEventListener('click', startTurn);
